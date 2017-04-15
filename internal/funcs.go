@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"text/template"
@@ -14,6 +15,7 @@ func (a *ArgType) NewTemplateFuncs() template.FuncMap {
 	return template.FuncMap{
 		"colcount":       a.colcount,
 		"colnames":       a.colnames,
+		"colnamesstring": a.colnamesstring,
 		"colnamesquery":  a.colnamesquery,
 		"colprefixnames": a.colprefixnames,
 		"colvals":        a.colvals,
@@ -182,6 +184,33 @@ func (a *ArgType) colnames(fields []*Field, ignoreNames ...string) string {
 			str = str + ", "
 		}
 		str = str + a.colname(f.Col)
+		i++
+	}
+
+	return str
+}
+
+// colnamesstring creates a list of the column names found in fields, excluding any
+// Field with Name contained in ignoreNames
+//
+// Used to present a comma separated list of column names as double-quoted strings
+func (a *ArgType) colnamesstring(fields []*Field, ignoreNames ...string) string {
+	ignore := map[string]bool{}
+	for _, n := range ignoreNames {
+		ignore[n] = true
+	}
+
+	str := ""
+	i := 0
+	for _, f := range fields {
+		if ignore[f.Name] {
+			continue
+		}
+
+		if i != 0 {
+			str = str + ", "
+		}
+		str = str + fmt.Sprintf(`%q`, a.colname(f.Col))
 		i++
 	}
 

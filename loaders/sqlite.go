@@ -70,24 +70,39 @@ func SqParseType(args *internal.ArgType, dt string, nullable bool) (int, string,
 		nilVal = "false"
 		typ = "bool"
 		if nullable {
-			nilVal = "sql.NullBool{}"
-			typ = "sql.NullBool"
+			if args.EnableDBRNullTypes {
+				nilVal = "dbr.NullBool{}"
+				typ = "dbr.NullBool"
+			} else {
+				nilVal = "sql.NullBool{}"
+				typ = "sql.NullBool"
+			}
 		}
 
 	case "int", "integer", "tinyint", "smallint", "mediumint", "bigint":
 		nilVal = "0"
 		typ = args.Int32Type
 		if nullable {
-			nilVal = "sql.NullInt64{}"
-			typ = "sql.NullInt64"
+			if args.EnableDBRNullTypes {
+				nilVal = "dbr.NullInt64{}"
+				typ = "dbr.NullInt64"
+			} else {
+				nilVal = "sql.NullInt64{}"
+				typ = "sql.NullInt64"
+			}
 		}
 
 	case "numeric", "real", "double", "float", "decimal":
 		nilVal = "0.0"
 		typ = "float64"
 		if nullable {
-			nilVal = "sql.NullFloat64{}"
-			typ = "sql.NullFloat64"
+			if args.EnableDBRNullTypes {
+				nilVal = "dbr.NullFloat64{}"
+				typ = "dbr.NullFloat64"
+			} else {
+				nilVal = "sql.NullFloat64{}"
+				typ = "sql.NullFloat64"
+			}
 		}
 
 	case "blob":
@@ -102,8 +117,13 @@ func SqParseType(args *internal.ArgType, dt string, nullable bool) (int, string,
 		nilVal = `""`
 		typ = "string"
 		if nullable {
-			nilVal = "sql.NullString{}"
-			typ = "sql.NullString"
+			if args.EnableDBRNullTypes {
+				nilVal = "dbr.NullString{}"
+				typ = "dbr.NullString"
+			} else {
+				nilVal = "sql.NullString{}"
+				typ = "sql.NullString"
+			}
 		}
 	}
 

@@ -110,6 +110,8 @@ type ArgType struct {
 	// EscapeColumnNames toggles escaping column names in SQL queries.
 	EscapeColumnNames bool `arg:"--escape-column,-x,help:escape column names in SQL queries"`
 
+	EnableDBRNullTypes bool `arg:"--dbr-types,help:use the nullable types from github.com/gocraft/dbr for postgres mysql and sqlite"`
+
 	// EnablePostgresOIDs toggles postgres oids.
 	EnablePostgresOIDs bool `arg:"--enable-postgres-oids,help:enable postgres oids"`
 

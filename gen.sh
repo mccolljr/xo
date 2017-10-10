@@ -4,7 +4,7 @@ PGDB=pg://xodb:xodb@localhost/xodb
 MYDB=my://xodb:xodb@localhost/xodb
 MSDB=ms://xodb:xodb@localhost/xodb
 SQDB=sq:xodb.sqlite3
-ORDB=or://xodb:xodb@$(docker port orcl 1521)/xe.oracle.docker
+ORDB=or://xodb:xodb@localhost/xe
 
 DEST=$1
 
@@ -107,7 +107,7 @@ SELECT
 FROM pg_attribute a
   JOIN ONLY pg_class c ON c.oid = a.attrelid
   JOIN ONLY pg_namespace n ON n.oid = c.relnamespace
-  LEFT JOIN pg_constraint ct ON ct.conrelid = c.oid AND a.attnum = ANY(ct.conkey) AND ct.contype IN('p', 'u')
+  LEFT JOIN pg_constraint ct ON ct.conrelid = c.oid AND a.attnum = ANY(ct.conkey) AND ct.contype = 'p'
   LEFT JOIN pg_attrdef ad ON ad.adrelid = c.oid AND ad.adnum = a.attnum
 WHERE a.attisdropped = false AND n.nspname = %%schema string%% AND c.relname = %%table string%% AND (%%sys bool%% OR a.attnum > 0)
 ORDER BY a.attnum
@@ -429,7 +429,13 @@ $XOBIN $ORDB -a -N -M -B -T Column -F OrTableColumns -o $DEST $EXTRA << ENDSQL
 SELECT
   c.column_id AS field_ordinal,
   LOWER(c.column_name) AS column_name,
-  LOWER(c.data_type) AS data_type,
+  LOWER(CASE c.data_type
+          WHEN 'CHAR' THEN 'CHAR('||c.data_length||')'
+          WHEN 'VARCHAR2' THEN 'VARCHAR2('||data_length||')'
+          WHEN 'NUMBER' THEN
+		    (CASE WHEN c.data_precision IS NULL AND c.data_scale IS NULL THEN 'NUMBER'
+               ELSE 'NUMBER('||NVL(c.data_precision, 38)||','||NVL(c.data_scale, 0)||')' END)
+          ELSE c.data_type END) AS data_type,
   CASE WHEN c.nullable = 'N' THEN '1' ELSE '0' END AS not_null,
   COALESCE((SELECT CASE WHEN r.constraint_type = 'P' THEN '1' ELSE '0' END
     FROM all_cons_columns l, all_constraints r
